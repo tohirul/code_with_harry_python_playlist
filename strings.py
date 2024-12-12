@@ -1,15 +1,12 @@
+name = "John Doe"
+print(name)
 
-user_name = 'john doe'
-# print(user_name, type(user_name), len(user_name))
-# print(user_name.upper())
-# print(user_name.capitalize())
-# print(user_name.title())
-# print(user_name[0:4].title())
+friend = 'sifat'
+print(friend)
 
-# for st in user_name.title():
-#   print(st)
+message = "When you are free?"
+print(message)
 
-for char in user_name.title():
-    print(char)
+print(name[:4])
 
-print(user_name.replace("doe", "smith"))
+print(name[5:])

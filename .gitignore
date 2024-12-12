@@ -17,6 +17,7 @@ __pycache__/
 *.nox/
 *.coverage
 *.hypothesis/
+pyenv/
 
 # Go
 bin/
