@@ -1,1 +1,1 @@
-2 if i < 0 else 1
+set
