@@ -19,6 +19,7 @@ __pycache__/
 *.hypothesis/
 pyenv/
 
+
 # Go
 bin/
 pkg/
@@ -54,3 +55,7 @@ obj/
 *.log
 *.err
 *.out
+
+# dir
+*.code-workspace
+.vscode
