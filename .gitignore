@@ -18,6 +18,7 @@ __pycache__/
 *.coverage
 *.hypothesis/
 pyenv/
+.venv/
 
 
 # Go
