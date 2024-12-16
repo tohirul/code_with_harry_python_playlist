@@ -12,15 +12,16 @@ def get_number():
         num = input("Enter a positive number: ")
         try:
             num = int(num)
-            check_number(num)  # Check the number after converting to int
+            check_number(num)
             return num
         except (ValueError, IndexError, TypeError) as e:
             print(f"Error: {e}. Please try again.")
+        finally:
+            print(f'You entered {num}')
 
 
 num = get_number()
 
-print(f'You entered {num}')
 
 # print multiplication table for the number
 print("Multiplication table:")
