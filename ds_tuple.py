@@ -12,7 +12,7 @@ num_tup = num_tup[:2] + num_tup[3:]
 print(num_tup)
 
 
-def add_to_tuple(tup: tuple, item: any) -> tuple:
+def add_to_tuple(tup: tuple, item) -> tuple:
     """#+
     This function adds an item to the end of a tuple.#+
 #+
