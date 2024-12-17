@@ -1,0 +1,27 @@
+# .pep8 configuration file
+
+[pep8]
+# Set the maximum allowed line length
+max-line-length = 140
+
+# Ignore specific formatting rules
+# E203: Whitespace before ':'
+# W503: Line break before binary operator
+# These are ignored for Black compatibility
+ignore = E203, W503
+
+# Aggressiveness level for fixing code
+# 0: Minimal fixes
+# 1: Moderate fixes (default)
+# 2: Fix all errors
+aggressive = 1
+
+# Exclude files or directories from formatting
+exclude = 
+    .git,
+    __pycache__,
+    build,
+    dist,
+    venv,
+    .env,
+    migrations

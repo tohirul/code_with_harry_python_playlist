@@ -1,0 +1,40 @@
+# .flake8 configuration file
+
+[flake8]
+# Set the maximum line length for your code
+max-line-length = 140
+
+# Ignore specific rules
+# E203: Whitespace before ':'
+# W503: Line break before binary operator
+# These are commonly ignored for compatibility with Black
+ignore = E203, W503
+
+# Enable specific checks or plugins
+# Uncomment and add plugin checks as needed
+# select = E,F,W,C90
+
+# Exclude files or directories from linting
+exclude = 
+    .git,
+    __pycache__,
+    build,
+    dist,
+    venv,
+    .env,
+    migrations
+
+# Enable counting of errors and warnings
+count = true
+
+# Show source code for each issue
+show-source = true
+
+# Display a per-category summary after linting
+statistics = true
+
+# Additional plugins can be installed and listed here
+# Example for flake8 plugins:
+# install: `pip install flake8-bugbear`
+# enable the bugbear rules
+# extend-ignore = B9
