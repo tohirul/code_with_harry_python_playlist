@@ -32,12 +32,8 @@ user_list = [
     }
 ]
 
-
-def write_messge(user):
-    print(f"Hello {user['name']}, your age is {user['age']}.")
-
-
 # for user in user_list:
 #     write_messge(user)
 
-list(map(write_messge, user_list))
+list(map(lambda user: print(
+    f"Hello {user['name']}, your age is {user['age']}."), user_list))
