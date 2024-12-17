@@ -2,7 +2,7 @@
 
 [pep8]
 # Set the maximum allowed line length
-max-line-length = 140
+max-line-length = 150
 
 # Ignore specific formatting rules
 # E203: Whitespace before ':'

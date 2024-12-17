@@ -2,7 +2,7 @@
 
 [flake8]
 # Set the maximum line length for your code
-max-line-length = 140
+max-line-length = 150
 
 # Ignore specific rules
 # E203: Whitespace before ':'
