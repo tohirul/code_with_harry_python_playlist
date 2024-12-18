@@ -1,6 +1,7 @@
 import argparse
 import logging
 import os
+import shutil
 import threading
 import time
 from concurrent.futures import ThreadPoolExecutor
@@ -16,7 +17,7 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 MAX_RETRIES = 3  # Max retries for a failed chunk download
 
 
-def download_chunk(url, start, end, chunk_id, output_file, max_speed, stats):
+def download_chunk(url, start, end, chunk_id, output_file, max_speed, stats, folder):
     """
     Download a chunk of the file using a specific byte range with retries.
     """
@@ -27,7 +28,8 @@ def download_chunk(url, start, end, chunk_id, output_file, max_speed, stats):
         try:
             response = requests.get(url, headers=headers, stream=True, timeout=10)
             if response.status_code == 206:  # Partial content
-                with open(f"{output_file}.part{chunk_id}", "wb") as f:
+                part_file_path = os.path.join(folder, f"{output_file}.part{chunk_id}")
+                with open(part_file_path, "wb") as f:
                     chunk_size = 0
                     for chunk in response.iter_content(chunk_size=8192):
                         f.write(chunk)
@@ -54,18 +56,25 @@ def download_chunk(url, start, end, chunk_id, output_file, max_speed, stats):
             logging.error(f"Unexpected error downloading chunk {chunk_id}: {str(e)}")
             break
 
+    # If retries exceed MAX_RETRIES, mark this chunk as lost
+    stats["total_loss"] += 1  # Increment packet loss count
     logging.error(f"Failed to download chunk {chunk_id} after {MAX_RETRIES} retries.")
 
 
-def merge_chunks(output_file, num_chunks, directory):
-    """Merge all downloaded chunks into one file."""
-    with open(output_file, "wb") as final_file:
+def merge_chunks(output_file, num_chunks, folder):
+    """Merge all downloaded chunks into one file and return the path of the final file."""
+    # Ensure the final file path has an appropriate file extension
+    final_file_path = os.path.join(folder, f"{output_file}")
+
+    with open(final_file_path, "wb") as final_file:
         for chunk_id in range(num_chunks):
-            part_filename = os.path.join(directory, f"{output_file}.part{chunk_id}")
+            part_filename = os.path.join(folder, f"{output_file}.part{chunk_id}")
             with open(part_filename, "rb") as part_file:
                 final_file.write(part_file.read())
-            os.remove(part_filename)
-    logging.debug(f"Chunks merged into {output_file}")
+            os.remove(part_filename)  # Remove the part file after merging
+    logging.debug(f"Chunks merged into {final_file_path}")
+
+    return final_file_path  # Return the final file path
 
 
 def update_stats_table(stats, total_size, table, file_name):
@@ -94,7 +103,7 @@ def update_stats_table(stats, total_size, table, file_name):
         table.add_row(["File Name", file_name])
         table.add_row(["Total Bytes", f"{stats['total_bytes'] / (1024 * 1024):.2f} MB"])
         table.add_row(["Packets", stats["total_packets"]])
-        table.add_row(["Loss", stats["total_loss"]])
+        table.add_row(["Loss", stats["total_loss"]])  # Display packet loss
         table.add_row(["Elapsed", f"{elapsed_minutes:.2f} min"])
         table.add_row(["Speed", f"{download_speed / (1024 * 1024):.2f} MB/s"])
         table.add_row(["ETA", f"{eta_minutes:.2f} min"])
@@ -120,14 +129,17 @@ def download_file(url, output_file, num_connections, max_speed, split, directory
     table = PrettyTable()
     table.field_names = ["Metric", "Value"]
 
+    # Create a folder for the file parts (using _chunks suffix to avoid conflict)
+    folder = os.path.join(directory, f"{output_file}_chunks")  # Add '_chunks' to avoid conflict
+    os.makedirs(folder, exist_ok=True)
+
     # Use ThreadPoolExecutor for managing threads
     with ThreadPoolExecutor(max_workers=num_connections) as executor:
         futures = []
         for i in range(num_connections):
             start = i * chunk_size
             end = (i + 1) * chunk_size - 1 if i < num_connections - 1 else total_size
-            futures.append(executor.submit(download_chunk, url, start, end, i, os.path.join(directory, output_file),
-                                           max_speed, stats))
+            futures.append(executor.submit(download_chunk, url, start, end, i, output_file, max_speed, stats, folder))
 
         # Start updating the stats table in a separate thread
         stats_thread = threading.Thread(target=update_stats_table, args=(stats, total_size, table, output_file))
@@ -138,7 +150,7 @@ def download_file(url, output_file, num_connections, max_speed, split, directory
             future.result()
 
         # Merge downloaded chunks into the final file
-        merge_chunks(output_file, num_connections, directory)
+        final_file_path = merge_chunks(output_file, num_connections, folder)
 
         # Wait for the stats table to finish
         stats_thread.join()
@@ -151,10 +163,18 @@ def download_file(url, output_file, num_connections, max_speed, split, directory
         table.add_row(["File Name", output_file])
         table.add_row(["Total Bytes", f"{stats['total_bytes'] / (1024 * 1024):.2f} MB"])
         table.add_row(["Packets", stats["total_packets"]])
-        table.add_row(["Loss", stats["total_loss"]])
+        table.add_row(["Loss", stats["total_loss"]])  # Final loss count
         table.add_row(["Elapsed", f"{elapsed_minutes:.2f} min"])
 
         print(table)
+
+        # Move the final file to the destination directory
+        destination_path = os.path.join(directory, f"{output_file}")
+        shutil.move(final_file_path, destination_path)
+
+        # Remove the temporary folder used for chunks
+        shutil.rmtree(folder)
+        logging.info(f"File downloaded and saved as {destination_path}.")
 
 
 def get_file_name_from_url(url):
