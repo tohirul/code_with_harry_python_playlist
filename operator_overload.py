@@ -16,5 +16,3 @@ v2 = vector(1, 2, 3)
 print(v1 + v2)
 print(v1)
 print(v2)
-
-
